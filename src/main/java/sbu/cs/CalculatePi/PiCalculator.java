@@ -1,6 +1,58 @@
 package sbu.cs.CalculatePi;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.Math.pow;
+
 public class PiCalculator {
+    public static class CalculatePI implements Runnable {
+        MathContext mc;
+        int k;
+        public CalculatePI(MathContext mc, int k) {
+            this.mc = mc;
+            this.k = k;
+        }
+
+        @Override
+        public void run() {
+
+            BigDecimal fraction = new BigDecimal("1");
+            fraction = fraction.divide(new BigDecimal("16").pow(k), mc);
+            BigDecimal a = new BigDecimal("4");
+            BigDecimal b = new BigDecimal("2");
+            BigDecimal c = new BigDecimal("1");
+            BigDecimal d = new BigDecimal("1");
+            a = a.divide(BigDecimal.valueOf(8 * k + 1), mc);
+            b = b.divide(BigDecimal.valueOf(8 * k + 4), mc);
+            c = c.divide(BigDecimal.valueOf(8 * k +5), mc);
+            d = d.divide(BigDecimal.valueOf(8 * k + 6) , mc);
+            a = a.subtract(b).subtract(c).subtract(d);
+            fraction = fraction.multiply(a);
+
+            addToPI(fraction);
+        }
+
+
+        public BigDecimal factorial(int n){
+            BigDecimal temp = new BigDecimal(1);
+            for (int i = 1; i <= n; i++) {
+                temp = temp.multiply(new BigDecimal(i), mc);
+            }
+
+            return temp;
+        }
+    }
+
+    public static BigDecimal pi;
+
+    public static synchronized void addToPI(BigDecimal value){
+        pi = pi.add(value);
+    }
 
     /**
      * Calculate pi and represent it as a BigDecimal object with the given floating point number (digits after . )
@@ -15,13 +67,32 @@ public class PiCalculator {
      * @return pi in string format (the string representation of the BigDecimal object)
      */
 
-    public String calculate(int floatingPoint)
+    public static String calculate(int floatingPoint)
     {
-        // TODO
-        return null;
+        MathContext mc = new MathContext(floatingPoint);
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(100);
+
+
+        pi = new BigDecimal("0");
+
+        for (int i = 0; i < 10000; i++) {
+            CalculatePI task = new CalculatePI(mc ,i);
+            threadPool.execute(task);
+        }
+
+        threadPool.shutdown();
+
+        try {
+            threadPool.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        pi = pi.setScale(floatingPoint, RoundingMode.HALF_DOWN);
+        return pi.toString();
     }
 
     public static void main(String[] args) {
-        // Use the main function to test the code yourself
+        System.out.println(calculate(1000));
     }
 }
