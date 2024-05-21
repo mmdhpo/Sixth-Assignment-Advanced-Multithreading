@@ -67,7 +67,7 @@ public class BBP {
      * @return pi in string format (the string representation of the BigDecimal object)
      */
 
-    public static String calculate(int floatingPoint)
+    public String calculate(int floatingPoint)
     {
         MathContext mc = new MathContext(floatingPoint);
 
@@ -94,7 +94,8 @@ public class BBP {
 
     public static void main(String[] args) {
         Instant start = Instant.now();
-        System.out.println(calculate(1000));
+        BBP bbp = new BBP();
+        System.out.println(bbp.calculate(1000));
         Instant end = Instant.now();
         Duration duration = Duration.between(start, end);
         System.out.println("Duration: " + duration.toMillis() + " ms");
