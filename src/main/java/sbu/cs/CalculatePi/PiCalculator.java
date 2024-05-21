@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 
 public class PiCalculator {
     public static class CalculatePI implements Runnable {
@@ -21,18 +22,19 @@ public class PiCalculator {
         @Override
         public void run() {
 
-            BigDecimal fraction = new BigDecimal("1");
-            fraction = fraction.divide(new BigDecimal("16").pow(k), mc);
-            BigDecimal a = new BigDecimal("4");
-            BigDecimal b = new BigDecimal("2");
-            BigDecimal c = new BigDecimal("1");
-            BigDecimal d = new BigDecimal("1");
-            a = a.divide(BigDecimal.valueOf(8 * k + 1), mc);
-            b = b.divide(BigDecimal.valueOf(8 * k + 4), mc);
-            c = c.divide(BigDecimal.valueOf(8 * k +5), mc);
-            d = d.divide(BigDecimal.valueOf(8 * k + 6) , mc);
-            a = a.subtract(b).subtract(c).subtract(d);
-            fraction = fraction.multiply(a);
+            BigDecimal sign = new BigDecimal(1);
+            if (k%2 == 1) {
+                sign = new BigDecimal(-1);
+            }
+
+            BigDecimal fraction = factorial(6 * k);
+            fraction = fraction.multiply(new BigDecimal(13591409 + 545140134 * k));
+            fraction = fraction.divide(factorial(3 * k), mc);
+            fraction = fraction.divide(factorial(k).pow(3), mc);
+            fraction = fraction.divide(new BigDecimal(640320).pow(3 * k + 1), mc);
+            fraction = fraction.divide(new BigDecimal(Math.sqrt(640320)), mc);
+            fraction = fraction.multiply(new BigDecimal("12"), mc);
+            fraction = fraction.multiply(sign, mc);
 
             addToPI(fraction);
         }
@@ -69,14 +71,14 @@ public class PiCalculator {
 
     public static String calculate(int floatingPoint)
     {
-        MathContext mc = new MathContext(floatingPoint);
+        MathContext mc = new MathContext(floatingPoint + 1);
 
-        ExecutorService threadPool = Executors.newFixedThreadPool(100);
+        ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
 
         pi = new BigDecimal("0");
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             CalculatePI task = new CalculatePI(mc ,i);
             threadPool.execute(task);
         }
@@ -88,7 +90,8 @@ public class PiCalculator {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        pi = pi.setScale(floatingPoint, RoundingMode.HALF_DOWN);
+        pi = new BigDecimal("1").divide(pi, mc);
+        pi = pi.setScale(floatingPoint, RoundingMode.DOWN);
         return pi.toString();
     }
 
