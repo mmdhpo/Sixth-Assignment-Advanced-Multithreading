@@ -3,14 +3,13 @@ package sbu.cs.CalculatePi;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.Math.pow;
-import static java.lang.Math.sqrt;
-
-public class PiCalculator {
+public class ChudnovskyAlgorithm {
     public static class CalculatePI implements Runnable {
         MathContext mc;
         int k;
@@ -73,12 +72,12 @@ public class PiCalculator {
     {
         MathContext mc = new MathContext(floatingPoint + 1);
 
-        ExecutorService threadPool = Executors.newFixedThreadPool(10);
+        ExecutorService threadPool = Executors.newFixedThreadPool(100);
 
 
         pi = new BigDecimal("0");
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10000; i++) {
             CalculatePI task = new CalculatePI(mc ,i);
             threadPool.execute(task);
         }
@@ -86,7 +85,7 @@ public class PiCalculator {
         threadPool.shutdown();
 
         try {
-            threadPool.awaitTermination(10000, TimeUnit.MILLISECONDS);
+            threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -96,6 +95,10 @@ public class PiCalculator {
     }
 
     public static void main(String[] args) {
+        Instant start = Instant.now();
         System.out.println(calculate(1000));
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
+        System.out.println("Duration: " + duration.toMillis() + " ms");
     }
 }
