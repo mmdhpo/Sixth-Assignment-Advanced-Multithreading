@@ -1,5 +1,7 @@
 package sbu.cs.Semaphore;
 
+import java.util.concurrent.Semaphore;
+
 public class Controller {
 
     /**
@@ -19,11 +21,14 @@ public class Controller {
      */
 
     public static void main(String[] args) {
-        Operator operator1 = new Operator("operator1");
-        Operator operator2 = new Operator("operator2");
-        Operator operator3 = new Operator("operator3");
-        Operator operator4 = new Operator("operator4");
-        Operator operator5 = new Operator("operator5");
+
+        Semaphore sem = new Semaphore(2);
+
+        Operator operator1 = new Operator("operator1", sem);
+        Operator operator2 = new Operator("operator2", sem);
+        Operator operator3 = new Operator("operator3", sem);
+        Operator operator4 = new Operator("operator4", sem);
+        Operator operator5 = new Operator("operator5", sem);
 
         operator1.start();
         operator2.start();
@@ -31,11 +36,15 @@ public class Controller {
         operator4.start();
         operator5.start();
 
-        /*
-        TODO
-            Use a Semaphore to solve the synchronization problem.
-            Every time a thread accesses the resource, print its Name and the current System Time.
-         */
+        try {
+            operator1.join();
+            operator2.join();
+            operator3.join();
+            operator4.join();
+            operator5.join();
+        } catch (InterruptedException e){
+            System.out.println(e.getMessage());
+        }
 
     }
 }
